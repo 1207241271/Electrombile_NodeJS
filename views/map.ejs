@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta name="viewport" content="initial-scale=1.0,user-scalable=no"/>
+		<meta http-equiv="Content-Type" content="text/html ;charset=utf-8"/>
+		<title>Hello,world</title>
+		<style type="text/css">
+			html{height: 100%}
+			body{height: 100%;margin: 0px;padding: 0px}
+			#container{height: 100%;margin:0px 30% 0px 0px;padding: 0px }
+			#table{height: 100%;margin:0px 0px 0px 70%;padding:0px}
+			</style>
+		<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=DB7inuiWSRTuGS4bWCGH1f5OUhbYkWek">
+			</script>
+	</head>
+	
+	<body>
+		<div id="container"></div>
+		<script type="text/javascript">
+			var map = new BMap.Map("container");
+			map.addControl(new BMap.ScaleControl({anchor:BMAP_ANCHOR_TOP_LEFT}));
+			map.addControl(new BMap.NavigationControl());
+			
+			var tempPoint = new BMap.Point(116.404,39.915);
+			map.centerAndZoom(tempPoint,15);
+			var myIcon = new BMap.Icon("/img/locate.png", new BMap.Size(20,50));
+			
+			var opts = { width:100,height:50,title:"车辆信息",enableMessage:false};
+			
+			translateCallback = function(data){
+				if(data.status === 0){
+					<%for(var i=0;i<carInfoArray.length;i++){%>
+						var marker = new BMap.Marker(data.points[<%=i%>],{icon:myIcon});
+						<%var carInfo = carInfoArray[i];
+							console.log(carInfo);%>
+						var content = "<%=carInfo.carName%>"+<%=carInfo.userPhone%>;
+						map.addOverlay(marker);
+						addClickerHandler(content,marker);
+						map.setCenter(data.points[<%=i%>]);
+
+					<%}%>
+				}
+			}
+			
+			function addClickerHandler(content,marker){
+				marker.addEventListener("click", function(e){
+					var p = e.target;
+					var point = new BMap.Point(p.getPosition().lng,p.getPosition().lat);
+					var infoWindow = new BMap.InfoWindow(content,opts);
+					map.openInfoWindow(infoWindow,point);
+				});
+			}
+			
+			var points = new Array;
+			<%	if(pointArray.length > 0){
+					pointArray.forEach(function(point){
+				%>
+				var BPoint = new BMap.Point(<%=point.longitude%>,<%=point.latitude%>);
+						points[points.length] = BPoint;
+						
+			<%});%>
+			
+					setTimeout(function(){
+						var convertor = new BMap.Convertor();
+						convertor.translate(points,1,5,translateCallback);
+					});
+			<%}%>
+			
+		</script>
+	</body>
+</html>
